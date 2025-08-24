@@ -33,7 +33,7 @@ app.post("/hdfcWebhook", async (req, res) => {
             db.onRampTransaction.updateMany({
                 where: {
                     token: paymentInformation.token
-                },
+                }, 
                 data: {
                     status: "Success",
                 }
@@ -52,4 +52,4 @@ app.post("/hdfcWebhook", async (req, res) => {
 
 })
 
-app.listen(3003); 
+app.listen(3003);
