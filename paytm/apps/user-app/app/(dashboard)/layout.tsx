@@ -12,7 +12,7 @@ export default function Layout({
                 <SidebarItem href={"/dashboard"} icon={<HomeIcon />} title="Home" />
                 <SidebarItem href={"/transfer"} icon={<TransferIcon />} title="Transfer" />
                 <SidebarItem href={"/transactions"} icon={<TransactionsIcon />} title="Transactions" />
-                <SidebarItem href={"/p2pTransfer"} icon={<TransactionsIcon />} title="P2P Transfer" />
+                <SidebarItem href={"/p2pTransfer"} icon={<P2PSwapIcon />} title="P2P Transfer" />
             </div>
         </div>
             {children}
@@ -38,3 +38,24 @@ function TransactionsIcon() {
   </svg>
   
 }
+
+function P2PSwapIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      className="w-6 h-6"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7 8h10m0 0-3-3m3 3-3 3M17 16H7m0 0 3 3m-3-3 3-3"
+      />
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+  );
+}
+

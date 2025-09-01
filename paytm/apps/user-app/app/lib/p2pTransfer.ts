@@ -1,46 +1,45 @@
-import prisma from "@repo/db/client";
+"use server"
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
+import prisma from "@repo/db/client";
 
-export async function createP2PTransfer(transferedAmount: number, phoneNumber: number) {
-    try {
-        const session = await getServerSession(authOptions);
-        const userId = session?.user?.id;
-        if (!userId) {
-            return { message: "User not authenticated" };
-        }
-        const user = await prisma.user.findUnique({
-            where: {
-                number: String(phoneNumber),
-            },
-        });
-        if (!user) return { message: "User not found" };
+export async function p2pTransfer(to: string, amount: number) {
+  try {
+    const session = await getServerSession(authOptions);
+    const from = session?.user?.id;
 
-        const balance = await prisma.balance.findUnique({
-            where: {
-                userId: user.id
-            }
-        });
-        if (!balance) return { message: "Balance not found" };
-        if(balance.amount < transferedAmount){
-            return { message: "Insufficient Balance" };
-
-        }
-        const newTransfer = await prisma.balance.update({
-            where: {
-                id: balance.id
-            },
-            data: {
-                amount: {
-                    increment: transferedAmount
-                },
-            }
-        })
-        if (newTransfer) {
-            return { data: newTransfer, message: "Transfer Successful" };
-        }
-        return { message: "Transfer Failed" };
-    } catch (error) {
-        return { message: "Request Failed" };
+    if (!from) {
+      return { success: false, message: "User not authenticated" };
     }
+
+    const toUser = await prisma.user.findFirst({ where: { number: to } });
+    if (!toUser) {
+      return { success: false, message: "Recipient not found" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const fromBalance = await tx.balance.findUnique({
+        where: { userId: Number(from) },
+      });
+
+      if (!fromBalance || fromBalance.amount < amount) {
+        throw new Error("Insufficient funds");
+      }
+
+      await tx.balance.update({
+        where: { userId: Number(from) },
+        data: { amount: { decrement: amount } },
+      });
+
+      await tx.balance.update({
+        where: { userId: toUser.id },
+        data: { amount: { increment: amount } },
+      });
+    });
+
+    return { success: true, message: "Transfer successful" };
+  } catch (err) {
+    console.error("P2P transfer failed:", err);
+    return { success: false, message: "Transfer failed" };
+  }
 }
